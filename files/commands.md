@@ -14,9 +14,17 @@ ssh lucy@192.168.50.201
 # Run launch files
 1. 
 ```
+roslaunch mdr_rosplan_interface rosplan.launch
+```
+2. devel branch
+```
+roslaunch mdr_find_object_action find_object.launch
+```
+3. 
+```
 roslaunch mdr_find_object_action find_object_client.launch
 ```
-2.
+4.
 ```
 rostopic pub /kcl_rosplan/action_dispatch rosplan_dispatch_msgs/ActionDispatch "action_id: 0
 plan_id: 0
@@ -25,12 +33,4 @@ parameters:
 - {key: 'obj_name', value: 'Snacks'}
 duration: 0.0
 dispatch_time: 0.0" -1
-```
-3. 
-```
-roslaunch mdr_rosplan_interface rosplan.launch
-```
-4. devel branch
-```
-roslaunch mdr_find_object_action find_object.launch
 ```
