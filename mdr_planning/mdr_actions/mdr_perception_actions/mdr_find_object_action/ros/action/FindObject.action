@@ -10,6 +10,8 @@ bool success
 mas_perception_msgs/Object obj
 string object_location
 string relation
+string[] natural_location
+string[] possible_locations
 ---
 # feedback
 string current_state

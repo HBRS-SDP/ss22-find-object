@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from curses.ascii import isxdigit
+
+from numpy import append
 import rospy
 from pyftsm.ftsm import FTSMTransitions
 from mas_execution.action_sm_base import ActionSMBase
@@ -58,13 +61,19 @@ class FindObjectSM(ActionSMBase):
 
             rospy.loginfo('[find_object] %s not found in the knowledge base; querying the ontology', obj_name)
             location = self.ontology_interface.get_default_storing_location(obj_name=obj_name)
+            all_possible_locations = self.ontology_interface.get_all_subjects_and_objects('possibleLocations')
             if location:
                 predicate = 'in'
-                rospy.loginfo('[find_object] %s is usually %s %s', obj_name, predicate, location)
+                rospy.loginfo('[find_object] %s is usually %s: %s', obj_name, predicate, ', '.join(x[1] for x in all_possible_locations))
+                natural_location = []
+                possible_locations = []
+                for name in all_possible_locations:
+                    natural_location.append(self.ontology_interface.get_obj_location(name[1]))
+                    possible_locations.append(name[1])
                 # TODO: check if the object is at the default location
                 obj_location = location
                 relation = predicate
-                self.result = self.set_result(True, obj_location, relation)
+                self.result = self.set_result(True, obj_location, relation,natural_location,possible_locations)
                 return FTSMTransitions.DONE
 
             rospy.loginfo('[find_object] %s not found', obj_name)
@@ -104,9 +113,11 @@ class FindObjectSM(ActionSMBase):
             self.result = self.set_result(False, obj_location, relation)
             return FTSMTransitions.DONE
 
-    def set_result(self, success, obj_location, relation):
+    def set_result(self, success, obj_location, relation,natural_location,possible_locations):
         result = FindObjectResult()
         result.success = success
         result.object_location = obj_location
         result.relation = relation
+        result.natural_location = natural_location
+        result.possible_locations = possible_locations
         return result

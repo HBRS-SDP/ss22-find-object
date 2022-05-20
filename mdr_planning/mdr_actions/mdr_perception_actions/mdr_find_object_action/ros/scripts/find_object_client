@@ -34,9 +34,9 @@ class FindObjectClient(ActionClientBase):
         client.send_goal(goal)
         client.wait_for_result(rospy.Duration.from_sec(int(self.action_timeout)))
         result = client.get_result()
-
         if result and result.success:
-            rospy.loginfo('[FIND_OBJECT] %s %s', result.object_location, result.relation)
+            for location,natural_location in zip(result.possible_locations,result.natural_location):
+                rospy.loginfo('[FIND_OBJECT] %s %s %s', location,result.relation,natural_location)
             self.update_knowledge_base(self.object_name, result.object_location, result.relation)
             self.send_action_feedback(True)
         else:
