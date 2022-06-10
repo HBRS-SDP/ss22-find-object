@@ -65,7 +65,6 @@ class MoveBaseSM(ActionSMBase):
         if self.goal.goal_type == MoveBaseGoal.NAMED_TARGET:
             destination = self.goal.destination_location
             rospy.loginfo('[move_base] Moving base to %s', destination)
-
             self.pose = self.convert_pose_name_to_coordinates(destination)
             pose.header.stamp = rospy.Time.now()
             pose.header.frame_id = self.pose_frame

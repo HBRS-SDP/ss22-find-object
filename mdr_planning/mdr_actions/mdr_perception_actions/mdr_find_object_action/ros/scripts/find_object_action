@@ -26,6 +26,7 @@ class FindObjectServer(object):
         ontology_class_prefix = rospy.get_param('~ontology_class_prefix', '')
         retry_count_on_failure = int(rospy.get_param('~retry_count_on_failure', 0))
         timeout_s = float(rospy.get_param('~timeout_s', 120.))
+        move_base_server = rospy.get_param('~move_base_server', 'move_base_server')
         if not ontology_url:
             rospy.logerr('[find_object] Ontology url not specified')
 
@@ -38,7 +39,8 @@ class FindObjectServer(object):
                                       ontology_entity_delimiter=ontology_entity_delimiter,
                                       ontology_class_prefix=ontology_class_prefix,
                                       number_of_retries=retry_count_on_failure,
-                                      timeout=timeout_s)
+                                      timeout=timeout_s,
+                                      move_base_server=move_base_server)
         rospy.loginfo('[find_object] State machine initialised')
 
         self.action_server = actionlib.SimpleActionServer('find_object_server',

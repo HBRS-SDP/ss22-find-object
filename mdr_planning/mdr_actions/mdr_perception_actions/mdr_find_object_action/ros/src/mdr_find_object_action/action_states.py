@@ -3,6 +3,11 @@ from curses.ascii import isxdigit
 
 from numpy import append
 import rospy
+
+import actionlib
+from geometry_msgs.msg import PoseStamped
+from mdr_move_base_action.msg import MoveBaseAction, MoveBaseGoal
+
 from pyftsm.ftsm import FTSMTransitions
 from mas_execution.action_sm_base import ActionSMBase
 from mas_knowledge_utils.domestic_ontology_interface import DomesticOntologyInterface
@@ -15,6 +20,9 @@ class FindObjectSM(ActionSMBase):
                  ontology_entity_delimiter,
                  ontology_class_prefix,
                  number_of_retries=0,
+                 
+                 move_base_server='move_base_server',
+                 
                  timeout=120.,
                  max_recovery_attempts=1):
         super(FindObjectSM, self).__init__('FindObject', [], max_recovery_attempts)
@@ -26,7 +34,10 @@ class FindObjectSM(ActionSMBase):
         self.timeout = timeout
         self.ontology_interface = None
         self.kb_interface = None
-
+        
+        self.move_base_server = move_base_server
+        self.move_base_client = None
+        
     def init(self):
         try:
             rospy.loginfo('[find_object] Creating an interface client for ontology %s', self.ontology_url)
@@ -36,18 +47,31 @@ class FindObjectSM(ActionSMBase):
                                                                 class_prefix=self.ontology_class_prefix)
         except Exception as exc:
             rospy.logerr('[find_object] Could not create an ontology interface client: %s', exc)
+        
 
         try:
             rospy.loginfo('[find_object] Creating a knowledge base interface client')
             self.kb_interface = DomesticKBInterface()
         except Exception as exc:
             rospy.logerr('[find_object] Could not create a knowledge base interface client: %s', exc)
+        
+        
+        try:
+            self.move_base_client = actionlib.SimpleActionClient(self.move_base_server, MoveBaseAction)
+            rospy.loginfo('[pickup] Waiting for %s server', self.move_base_server)
+            self.move_base_client.wait_for_server()
+        except Exception as exc:
+            rospy.logerr('[pickup] %s server does not seem to respond: %s',
+                         self.move_base_server, str(exc))
+        
         return FTSMTransitions.INITIALISED
+
 
     def running(self):
         obj_name = None
         obj_location = None
         relation = None
+        goal = MoveBaseGoal()
         if self.goal.goal_type == FindObjectGoal.NAMED_OBJECT:
             obj_name = self.goal.object_name
             location, predicate = self.kb_interface.get_object_location(obj_name)
@@ -74,6 +98,18 @@ class FindObjectSM(ActionSMBase):
                 obj_location = location
                 relation = predicate
                 self.result = self.set_result(True, obj_location, relation,natural_location,possible_locations)
+
+                ### Navigation from move_base_action_client_test
+                goal.goal_type = MoveBaseGoal.NAMED_TARGET
+                goal.destination_location = str(natural_location[0])
+                print("Lucy destination: ", natural_location[0])
+                timeout = 15.0
+                rospy.loginfo('Sending action lib goal to move_base_server, ' +
+                          'destination : ' + goal.destination_location)
+            
+                self.move_base_client.send_goal(goal)
+            
+                self.move_base_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
                 return FTSMTransitions.DONE
 
             rospy.loginfo('[find_object] %s not found', obj_name)
@@ -111,6 +147,7 @@ class FindObjectSM(ActionSMBase):
 
             rospy.logerr('[find_object] Object of category %s could not be found', obj_category)
             self.result = self.set_result(False, obj_location, relation)
+
             return FTSMTransitions.DONE
 
     def set_result(self, success, obj_location, relation,natural_location,possible_locations):
