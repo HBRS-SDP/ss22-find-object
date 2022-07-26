@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from curses.ascii import isxdigit
 
+import numpy as np
 from numpy import append
 import rospy
 
@@ -14,13 +15,14 @@ from mas_knowledge_utils.domestic_ontology_interface import DomesticOntologyInte
 from mas_knowledge_base.domestic_kb_interface import DomesticKBInterface
 from mdr_find_object_action.msg import FindObjectGoal, FindObjectResult
 
+# from mdr_move_base_action.action_states import MoveBaseSM
 class FindObjectSM(ActionSMBase):
     def __init__(self, ontology_url,
                  ontology_base_url,
                  ontology_entity_delimiter,
                  ontology_class_prefix,
                  number_of_retries=0,
-                 
+                #  pose_description_file='',
                  move_base_server='move_base_server',
                  
                  timeout=120.,
@@ -35,6 +37,8 @@ class FindObjectSM(ActionSMBase):
         self.ontology_interface = None
         self.kb_interface = None
         
+        # self.pose_description_file = pose_description_file
+
         self.move_base_server = move_base_server
         self.move_base_client = None
         
@@ -101,15 +105,40 @@ class FindObjectSM(ActionSMBase):
 
                 ### Navigation from move_base_action_client_test
                 goal.goal_type = MoveBaseGoal.NAMED_TARGET
-                goal.destination_location = str(natural_location[0])
-                print("Lucy destination: ", natural_location[0])
-                timeout = 15.0
-                rospy.loginfo('Sending action lib goal to move_base_server, ' +
+
+                robot_name = self.kb_interface.robot_name
+                # print("Robot Name: ", robot_name)
+                robot_location = self.kb_interface.get_robot_location(robot_name)
+                # print("Robot location in the map",robot_location)
+                # natural_locations = []
+                # for location in natural_location:
+                #     locatation_coordinates = MoveBaseSM.convert_pose_name_to_coordinates(self,location)
+                #     print("Location coordinates",locatation_coordinates)
+                #     distance = np.linalg.norm(np.array(robot_location) - np.array(locatation_coordinates))
+                #     print("Distance :",distance)
+
+                # goal.destination_location = str(natural_location[0])
+                # # goal.destination_location = str('observation_table')
+                # # goal.pose = MoveBaseGoal.POSE        #######spanch2s.
+                # # print("Goal of the robot : ",goal)
+                # # print("Pose of the robot : ", goal.pose)
+                # print("Lucy destination: ", natural_location[0])
+                # timeout = 15.0
+                # rospy.loginfo('Sending action lib goal to move_base_server, ' +
+                #           'destination : ' + goal.destination_location)
+            
+                # self.move_base_client.send_goal(goal)
+            
+                # self.move_base_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
+                # Loop through all locations
+                for location in natural_location:
+                    goal.destination_location = str(location)
+                    timeout = 15.0
+                    rospy.loginfo('Sending action lib goal to move_base_server, ' +
                           'destination : ' + goal.destination_location)
-            
-                self.move_base_client.send_goal(goal)
-            
-                self.move_base_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
+
+                    self.move_base_client.send_goal(goal)
+                    self.move_base_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
                 return FTSMTransitions.DONE
 
             rospy.loginfo('[find_object] %s not found', obj_name)
@@ -158,3 +187,19 @@ class FindObjectSM(ActionSMBase):
         result.natural_location = natural_location
         result.possible_locations = possible_locations
         return result
+    
+    # def get_distance(self,robot_coord,location_coord):
+    #     '''
+    #     robot_coord: [x,y,z]
+    #     location_coord:[x,y,z]
+    #     '''
+    #     distance = np.linalg.norm(np.array(robot_coord) - np.array(location_coord))
+    #     return distance
+
+## We need a dictionary of locations along with their locations.
+# example = {'location1':[x,y,z],'location2':[x,y,z],'location3':[x,y,z]}
+# distances = {'rob_loc-loc1':distance}
+# for location in example:
+#     distance = get_distance(robot_location,location)
+#     distances.append(distance)
+
