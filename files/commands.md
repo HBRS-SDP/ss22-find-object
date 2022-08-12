@@ -3,7 +3,7 @@
 2. 192.168.50.201/user/
 3. 
 ```
-export ROS_MASTER_URI=https://192.168.50.201:11311
+export ROS_MASTER_URI=http://192.168.50.201:11311
 ```
 4. 
 ```
