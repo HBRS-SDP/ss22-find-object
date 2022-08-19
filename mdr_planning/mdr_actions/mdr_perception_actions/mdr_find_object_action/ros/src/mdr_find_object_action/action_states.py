@@ -15,6 +15,9 @@ from mas_knowledge_utils.domestic_ontology_interface import DomesticOntologyInte
 from mas_knowledge_base.domestic_kb_interface import DomesticKBInterface
 from mdr_find_object_action.msg import FindObjectGoal, FindObjectResult
 
+from mdr_perceive_plane_action.msg import PerceivePlaneAction,PerceivePlaneGoal
+from geometry_msgs.msg import PoseWithCovarianceStamped
+
 # from mdr_move_base_action.action_states import MoveBaseSM
 class FindObjectSM(ActionSMBase):
     def __init__(self, ontology_url,
@@ -24,7 +27,7 @@ class FindObjectSM(ActionSMBase):
                  number_of_retries=0,
                 #  pose_description_file='',
                  move_base_server='move_base_server',
-                 
+                 perceive_plane_server = '/mdr_actions/perceive_plane_server',
                  timeout=120.,
                  max_recovery_attempts=1):
         super(FindObjectSM, self).__init__('FindObject', [], max_recovery_attempts)
@@ -41,6 +44,9 @@ class FindObjectSM(ActionSMBase):
 
         self.move_base_server = move_base_server
         self.move_base_client = None
+
+        
+        self.perceive_plane_server = perceive_plane_server
         
     def init(self):
         try:
@@ -67,6 +73,15 @@ class FindObjectSM(ActionSMBase):
         except Exception as exc:
             rospy.logerr('[pickup] %s server does not seem to respond: %s',
                          self.move_base_server, str(exc))
+
+        try:
+            # spanch2s Perception
+            self.perceive_plane_client = actionlib.SimpleActionClient(self.perceive_plane_server,PerceivePlaneAction)
+            rospy.loginfo('[pickup] Waiting for %s server', self.perceive_plane_server)
+            self.perceive_plane_client.wait_for_server()
+        except Exception as exc:
+            rospy.logerr('[pickup] %s server does not seem to respond: %s',
+                         self.perceive_plane_server, str(exc))
         
         return FTSMTransitions.INITIALISED
 
@@ -76,6 +91,16 @@ class FindObjectSM(ActionSMBase):
         obj_location = None
         relation = None
         goal = MoveBaseGoal()
+        
+        # Perception spanch2s
+        perceive_plane_goal = PerceivePlaneGoal()
+        perceive_plane_goal.plane_config = 'table'
+        perceive_plane_goal.plane_frame_prefix = 'frame_table'
+
+        robot_current_location = rospy.Subscriber('/laser_2d_correct_pose',PoseWithCovarianceStamped,callback=self.location_callback)
+        print("Robot_current_location : ",robot_current_location)
+
+        # Navigation
         if self.goal.goal_type == FindObjectGoal.NAMED_OBJECT:
             obj_name = self.goal.object_name
             location, predicate = self.kb_interface.get_object_location(obj_name)
@@ -117,67 +142,78 @@ class FindObjectSM(ActionSMBase):
                 #     distance = np.linalg.norm(np.array(robot_location) - np.array(locatation_coordinates))
                 #     print("Distance :",distance)
 
-                # goal.destination_location = str(natural_location[0])
-                # # goal.destination_location = str('observation_table')
-                # # goal.pose = MoveBaseGoal.POSE        #######spanch2s.
-                # # print("Goal of the robot : ",goal)
-                # # print("Pose of the robot : ", goal.pose)
-                # print("Lucy destination: ", natural_location[0])
+                
+                # Comment the for loop for testing
+                # goal.destination_location = 'observation_table'
                 # timeout = 15.0
+                # premt_timeout = 45.0
                 # rospy.loginfo('Sending action lib goal to move_base_server, ' +
                 #           'destination : ' + goal.destination_location)
-            
                 # self.move_base_client.send_goal(goal)
-            
                 # self.move_base_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
-                # Loop through all locations
-                for location in natural_location:
-                    goal.destination_location = str(location)
+
+                # while self.move_base_client.get_state() ==3:
+                #     self.move_base_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
+                #     if self.move_base_client.get_state() == 3:
+                #         print('get_result',self.move_base_client.get_result())
+                #         print('get_state',self.move_base_client.get_state())
+                #         try:
+                #             timeout = 45.0
+                #             rospy.loginfo('Sending action lib goal to perceive_plane_server')
+                #             self.perceive_plane_client.send_goal(perceive_plane_goal)
+                #             self.perceive_plane_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
+                #             preception_results = self.perceive_plane_client.get_result()
+                #             # print("perception_results",preception_results)
+                #             objects_list = preception_results.objects_list
+                #             print("objects results ", objects_list)
+                #             if 'cup' in objects_list:
+                #                 print("Approach is correct and proceed with manipulation part")
+                #             else:
+                #                 print("Goto to next location and perceive again")
+                #         except:
+                #             pass
+                #     else:
+                #         print("Code failed ------------------")
+                #     break
+
+                # Loop through all locations ------ working code for perception + navigation
+                # for location in natural_location:
+                for location in ['observation_table']:
+                    goal.destination_location = location
                     timeout = 15.0
                     rospy.loginfo('Sending action lib goal to move_base_server, ' +
                           'destination : ' + goal.destination_location)
 
                     self.move_base_client.send_goal(goal)
                     self.move_base_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
+                    while self.move_base_client.get_state() !=3:
+                        self.move_base_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
+                        if self.move_base_client.get_state() == 3:
+                            print('get_result',self.move_base_client.get_result())
+                            print('get_state',self.move_base_client.get_state())
+                            try:
+                                timeout = 45.0
+                                rospy.loginfo('Sending action lib goal to perceive_plane_server')
+                                self.perceive_plane_client.send_goal(perceive_plane_goal)
+                                self.perceive_plane_client.wait_for_result(rospy.Duration.from_sec(int(timeout)))
+                                preception_results = self.perceive_plane_client.get_result()
+                                # print("perception_results",preception_results)
+                                objects_list = preception_results.objects_list
+                                print("objects results ", objects_list)
+                                if 'cup' in objects_list:
+                                    print("Approach is correct and proceed with manipulation part")
+                                    # we need something to stop the loop and manipulation should work
+                                    break
+                                else:
+                                    print("Goto to next location and perceive again")
+                            except:
+                                pass
+                        else:
+                            print("Code failed ------------------") # comment this line later
+                            # pass 
+                                   
                 return FTSMTransitions.DONE
 
-            rospy.loginfo('[find_object] %s not found', obj_name)
-            obj_location = None
-            relation = None
-            self.result = self.set_result(True, obj_location, relation)
-            return FTSMTransitions.DONE
-        elif self.goal.goal_type == FindObjectGoal.OBJECT_CATEGORY:
-            obj_category = self.goal.object_name
-            category_objects = self.kb_interface.get_category_objects(obj_category)
-            if category_objects:
-                for obj_name in category_objects:
-                    location, predicate = self.kb_interface.get_object_location(obj_name)
-                    if location:
-                        rospy.loginfo('[find_object] Found %s %s %s', obj_name, predicate, location)
-                        # TODO: verify that the object is still at that location
-                        obj_location = location
-                        relation = predicate
-                        self.result = self.set_result(True, obj_location, relation)
-                        return FTSMTransitions.DONE
-                    else:
-                        rospy.loginfo('[find_object] The location of %s is unknown', obj_name)
-            else:
-                rospy.loginfo('[find_object] No object of category %s was found in the knowledge base; querying the ontology', obj_category)
-
-            location = self.ontology_interface.get_default_storing_location(obj_category=obj_category)
-            if location:
-                predicate = 'in'
-                rospy.loginfo('[find_object] Objects of %s are usually %s %s', obj_category, predicate, location)
-                # TODO: check if an object of the desired category is at the default location
-                obj_location = location
-                relation = predicate
-                self.result = self.set_result(True, obj_location, relation)
-                return FTSMTransitions.DONE
-
-            rospy.logerr('[find_object] Object of category %s could not be found', obj_category)
-            self.result = self.set_result(False, obj_location, relation)
-
-            return FTSMTransitions.DONE
 
     def set_result(self, success, obj_location, relation,natural_location,possible_locations):
         result = FindObjectResult()
@@ -187,6 +223,10 @@ class FindObjectSM(ActionSMBase):
         result.natural_location = natural_location
         result.possible_locations = possible_locations
         return result
+
+    def location_callback(self,msg):
+        print("location callbacck message",msg.data)
+        return msg.data
     
     # def get_distance(self,robot_coord,location_coord):
     #     '''
