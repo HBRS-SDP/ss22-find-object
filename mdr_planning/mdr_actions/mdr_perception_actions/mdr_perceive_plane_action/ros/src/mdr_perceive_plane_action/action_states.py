@@ -103,18 +103,22 @@ class PerceivePlaneSM(ActionSMBase):
                 rospy.logwarn('[perceive_plane] no objects recognized for plane "{0}" (height {1:.3f})'
                               .format(plane.name, plane.plane_point.z))
 
-        self.result = self.set_result(True, detected_planes)
+        self.result = self.set_result(True, detected_planes,classes)
+        #spanch2s need to add objects pose to the results may be modifiy it to a dictionary
+        print("List of detected objets are : ",self.result.objects_list)
         return FTSMTransitions.DONE
 
     def _detection_cb(self):
         self._detecting_done = True
 
-    def set_result(self, success, recognized_planes):
+    def set_result(self, success, recognized_planes,classes):
         result = PerceivePlaneResult()
         result.success = success
         if recognized_planes is None:
             result.recognized_planes = PlaneList()
+            
             result.recognized_planes.planes = []
         else:
             result.recognized_planes = recognized_planes
+            result.objects_list = classes
         return result
