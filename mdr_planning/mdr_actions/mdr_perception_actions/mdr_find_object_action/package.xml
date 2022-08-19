@@ -22,6 +22,7 @@
   <build_depend>mas_knowledge_base</build_depend>
   <build_depend>mdr_move_base_action</build_depend>
   <build_depend>mdr_perceive_plane_action</build_depend>
+  <build_depend>mas_execution_manager</build_depend>
 
   <run_depend>rospy</run_depend>
   <run_depend>actionlib</run_depend>
