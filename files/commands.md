@@ -30,7 +30,9 @@ rostopic pub /kcl_rosplan/action_dispatch rosplan_dispatch_msgs/ActionDispatch "
 plan_id: 0
 name: 'find_object'
 parameters:
-- {key: 'obj_name', value: 'Snacks'}
+- {key: 'obj_name', value: 'Fruit'}
 duration: 0.0
 dispatch_time: 0.0" -1
 ```
+
+5. roslaunch mdr_perceive_plane_action perceive_plane.launch cloud_topic:=/hsrb/head_rgbd_sensor/depth_registered/rectified_points
