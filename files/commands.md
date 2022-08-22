@@ -35,4 +35,7 @@ duration: 0.0
 dispatch_time: 0.0" -1
 ```
 
-5. roslaunch mdr_perceive_plane_action perceive_plane.launch cloud_topic:=/hsrb/head_rgbd_sensor/depth_registered/rectified_points
+5. 
+```
+roslaunch mdr_perceive_plane_action perceive_plane.launch cloud_topic:=/hsrb/head_rgbd_sensor/depth_registered/rectified_points
+```
