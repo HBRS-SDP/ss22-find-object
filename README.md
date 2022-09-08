@@ -12,7 +12,10 @@
 ## UML_Diagram
 
 ## Dependencies
-
+* mas_perception_libs
+* mdr_move_base_action
+* mdr_perceive_plane_action
+* mdr_pickup_action
 ## Packages
 * mas_knowledge_base - ontology
 * mdr_navigation - navigating through the map
