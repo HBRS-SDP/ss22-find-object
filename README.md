@@ -51,5 +51,12 @@ parameters:
 - {key: 'obj_name', value: 'baseball'}
 duration: 0.0
 dispatch_time: 0.0" -1
-
 ```
+
+## Things to consider
+1. You may need to restart services on the robot.
+    * mas_hsr_pickup_action
+    * mas_hsr_move_arm_action
+    * mas_hsr_move_base_action
+2.If rosplan interface gets stopped due to MongoDb store has been killed error, you might need to delete the files inside the mongoDB_store folder present in mas_knowledge_base/common and keep the folder empty before running the rosplan again.
+3. Localize the robot properly before publishing the user specified object.
