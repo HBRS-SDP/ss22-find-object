@@ -1,9 +1,9 @@
 # ss22-find-object
 For the "General Solution to Find Object" project, done for the course of SDP-SS22, we were required to program the Human Support HSR so as to work like a human being for finding objects. For example, if a human being was told to get a spoon, their first response would be to go to the kitchen and then dining room, then living room, etc. The same logic has been implemented, where the HSR has to go through the ontology to get the default location of the user-specified item, go to the default location and perceive for the item. If the item is not found in the  default location, then it has to go to all the other possible locations to perceive and pick up the object. 
-
+![image](https://github.com/HBRS-SDP/ss22-find-object/blob/main/images/hsr1.jpg)
 To get started with building and learning the domestic packages, the [mas_tutorials](https://github.com/b-it-bots/mas_tutorials#mas_tutorials) page has been helpful.
 
-The strategy implemented has been explained below.
+The strategy implemented has been explained below. A video to show the working of the project can be found [here](https://bib-cloud.bib.hochschule-bonn-rhein-sieg.de/f/13119745)
 
 ## Table of Contents
 1. [Summary](https://github.com/HBRS-SDP/ss22-find-object#summary)
