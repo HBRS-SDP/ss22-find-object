@@ -6,6 +6,8 @@ string plane_frame_prefix
 bool success
 mas_perception_msgs/PlaneList recognized_planes
 string[] objects_list
+
+mas_perception_msgs/Object[] objects
 ---
 # feedback
 string current_state
