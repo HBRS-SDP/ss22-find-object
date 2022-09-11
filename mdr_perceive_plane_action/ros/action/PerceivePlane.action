@@ -1,0 +1,14 @@
+# goal definition
+string plane_config
+string plane_frame_prefix
+---
+# result definition
+bool success
+mas_perception_msgs/PlaneList recognized_planes
+string[] objects_list
+
+mas_perception_msgs/Object[] objects
+---
+# feedback
+string current_state
+string message 
