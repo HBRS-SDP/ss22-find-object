@@ -8,7 +8,19 @@
 6. [Acknowledgments](Acknowledgments)
 
 ## Summary
+* Given a user-specified choice(string) of object name, the software shall return all the default locations (strings) relative to the specified item based on the ontology structure.
 
+![image](https://github.com/HBRS-SDP/ss22-find-object/blob/main/images/ontology.png)
+![image](https://github.com/HBRS-SDP/ss22-find-object/blob/main/images/ontology_final.png)
+
+* The interpreted the possible location of the object in the ontology is used along with the navigation goals.yml file to obtain the coordinates of the location which are then sent to move base server to move the robot.
+
+* The robot shall navigate to the respective location and percives the plane using perceive plane action package to identify the user-specified object.
+
+![image](https://github.com/HBRS-SDP/ss22-find-object/blob/main/images/final_demo_objects.png)
+
+* If the object is not found the robot shall navigate to the next possible location to find the object.
+* If the object is found then the robot shall pickup the user-specified object using pickup action code.
 ## UML_Diagram
 
 ## Dependencies
@@ -23,12 +35,6 @@
 * mdr_manipulation - pickup and place
 * mdr_msgs - ROS messages 
 
-## Actions_Used
-1. 
-2.
-3.
-4.
-
 ## Example usage
 1. Run the rosplan interface: ``` roslaunch mdr_rosplan_interface rosplan.launch ```
 2. Run the perceive plane action server: ``` roslaunch mdr_perceive_plane_action perceive_plane.launch cloud_topic:=/hsrb/head_rgbd_sensor/depth_registered/rectified_points ```
@@ -42,10 +48,8 @@ rostopic pub /kcl_rosplan/action_dispatch rosplan_dispatch_msgs/ActionDispatch "
 plan_id: 0
 name: 'find_object'
 parameters:
-- {key: 'obj_name', value: '055_baseball'}
+- {key: 'obj_name', value: 'baseball'}
 duration: 0.0
 dispatch_time: 0.0" -1
 
 ```
-
-## Acknowledgments
