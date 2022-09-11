@@ -7,7 +7,7 @@ The strategy implemented has been explained below.
 
 ## Table of Contents
 1. [Summary](https://github.com/HBRS-SDP/ss22-find-object#summary)
-2. [UML Diagram](https://github.com/HBRS-SDP/ss22-find-object#uml-diagram)
+2. [UML Diagram](https://github.com/HBRS-SDP/ss22-find-object#uml_diagram)
 3. [Dependencies](https://github.com/HBRS-SDP/ss22-find-object#dependencies)
 4. [Packages](https://github.com/HBRS-SDP/ss22-find-object#packages)
 5. [Example Usage](https://github.com/HBRS-SDP/ss22-find-object#example-usage)
